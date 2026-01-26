@@ -25,6 +25,8 @@ import {
   Building2,
   Gavel
 } from 'lucide-react';
+import { jsPDF } from "jspdf";
+import html2canvas from "html2canvas";
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('home');
@@ -105,7 +107,7 @@ const App = () => {
           />
         )}
         {activeTab === 'papers' && <PapersPage papers={papers} />}
-        {activeTab === 'certify' && <CertificationWorkflow />}
+        {activeTab === 'certify' && <CertificationWorkflow setActiveTab={setActiveTab} />}
       </main>
 
       <footer className="bg-white border-t mt-12 py-12">
@@ -205,7 +207,7 @@ const HomePage = ({ setActiveTab }) => {
             </div>
             <h4 className="text-xl font-bold">DPDP Act 2023 Compliance</h4>
             <p className="text-slate-600 text-sm leading-relaxed">
-              Certification that medical AI tools follow Indian laws regarding patient consent, the "right to be forgotten," and technical security safeguards against adversarial attacks.
+              Validate that medical AI tools follow Indian laws regarding patient consent, the "right to be forgotten," and technical security safeguards against adversarial attacks.
             </p>
           </div>
           <div className="bg-white p-8 rounded-3xl border shadow-sm space-y-4">
@@ -392,7 +394,7 @@ const PapersPage = ({ papers }) => (
   </div>
 );
 
-const CertificationWorkflow = () => {
+const CertificationWorkflow = ({ setActiveTab }) => {
   const [step, setStep] = useState(1);
   const [verifyId, setVerifyId] = useState('');
   const [isVerified, setIsVerified] = useState(null);
@@ -410,6 +412,114 @@ const CertificationWorkflow = () => {
       setIsVerified(true);
     } else {
       setIsVerified(false);
+    }
+  };
+
+
+  const handleDownloadReport = async () => {
+    // Dynamic import to avoid SSR issues if this were a Next.js app, 
+    // but standard import is fine for Vite. We'll use standard import at top of file, 
+    // but for this snippet let's assume imports are added.
+    // For this specific block, I will strictly rewrite the function logic.
+
+    // We need to create a temporary element to render the HTML
+    const reportContainer = document.createElement('div');
+    reportContainer.style.position = 'absolute';
+    reportContainer.style.top = '-9999px';
+    reportContainer.style.left = '-9999px';
+    reportContainer.style.width = '800px'; // Fixed width to ensure A4 consistency
+    reportContainer.style.backgroundColor = '#ffffff';
+    document.body.appendChild(reportContainer);
+
+    reportContainer.innerHTML = `
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Courier+Prime:wght@700&display=swap');
+        .report-body { font-family: 'Inter', sans-serif; line-height: 1.5; color: #333; padding: 40px; background: #fff; }
+        .header { border-bottom: 2px solid #4f46e5; padding-bottom: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .logo { font-size: 24px; font-weight: bold; color: #4f46e5; }
+        .meta { text-align: right; font-size: 14px; color: #666; }
+        h1 { font-size: 26px; margin-bottom: 10px; color: #1e1b4b; }
+        h2 { font-size: 18px; color: #4f46e5; margin-top: 25px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        h3 { font-size: 14px; font-weight: bold; margin-top: 15px; color: #334155; }
+        .metric-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 10px; }
+        .metric-item { background: #f8fafc; padding: 8px 12px; border-radius: 6px; display: flex; justify-content: space-between; border: 1px solid #e2e8f0; align-items: center; }
+        .metric-name { font-weight: 500; font-size: 12px; }
+        .metric-value { font-family: 'Courier Prime', monospace; font-weight: bold; color: #0f172a; font-size: 13px; }
+        .footer { margin-top: 40px; font-size: 10px; color: #94a3b8; text-align: center; border-top: 1px solid #eee; padding-top: 20px; }
+        .badge { background: #dcfce7; color: #166534; padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; margin-left: 5px; }
+      </style>
+      <div class="report-body">
+        <div class="header">
+          <div class="logo">TrustMaps India</div>
+          <div class="meta">
+            <div>Certificate ID: <strong>TM-IND-2024-HEALTH-001</strong></div>
+            <div>Date: ${new Date().toLocaleDateString()}</div>
+          </div>
+        </div>
+
+        <h1>Comprehensive Model Evaluation Report</h1>
+        <p>This report certifies that the model has undergone the rigorous <strong>National Trust Gold Standard</strong> evaluation protocol.</p>
+        
+        <h2>Security & Privacy Assessment</h2>
+        <div class="metric-grid">
+          <div class="metric-item"><span class="metric-name">Membership Inference Accuracy (MIA)</span> <span class="metric-value">0.52 <span class="badge">LOW RISK</span></span></div>
+          <div class="metric-item"><span class="metric-name">Equal Error Rate (EER)</span> <span class="metric-value">2.4%</span></div>
+          <div class="metric-item"><span class="metric-name">Differential Privacy Budget (&epsilon;)</span> <span class="metric-value">2.1</span></div>
+          <div class="metric-item"><span class="metric-name">Vernacular Context Leakage (VCL)</span> <span class="metric-value">0.012</span></div>
+          <div class="metric-item"><span class="metric-name">Cross-Modal Privacy Propagation (CPPI)</span> <span class="metric-value">Low</span></div>
+          <div class="metric-item"><span class="metric-name">Stigmatization Amplification Risk (SAR)</span> <span class="metric-value">0.04</span></div>
+          <div class="metric-item"><span class="metric-name">Clinical Harm Attack Rate (CH-ASR)</span> <span class="metric-value">0.0%</span></div>
+        </div>
+
+        <h2>Fairness Assessment</h2>
+        <h3>Balancing Loss with Fairness Penalties</h3>
+        <div class="metric-grid">
+          <div class="metric-item"><span class="metric-name">Skewed Error Rate (SER)</span> <span class="metric-value">0.03</span></div>
+          <div class="metric-item"><span class="metric-name">Demographic Parity (DP) Gap</span> <span class="metric-value">0.02</span></div>
+          <div class="metric-item"><span class="metric-name">Equality of Opportunity (EO)</span> <span class="metric-value">0.98</span></div>
+          <div class="metric-item"><span class="metric-name">Groupwise FNR/FPR Gap</span> <span class="metric-value">&lt; 1.5%</span></div>
+          <div class="metric-item"><span class="metric-name">Individual Unfairness</span> <span class="metric-value">0.01</span></div>
+          <div class="metric-item"><span class="metric-name">Counterfactual Unfairness</span> <span class="metric-value">Pass</span></div>
+        </div>
+
+        <h2>Calibration & Risk Assessment</h2>
+        <div class="metric-grid">
+          <div class="metric-item"><span class="metric-name">Predictive Entropy</span> <span class="metric-value">0.45 bits</span></div>
+          <div class="metric-item"><span class="metric-name">Mutual Information</span> <span class="metric-value">0.32</span></div>
+          <div class="metric-item"><span class="metric-name">Variance (Stochastic Passes)</span> <span class="metric-value">0.004</span></div>
+          <div class="metric-item"><span class="metric-name">Abstention AU-ROC</span> <span class="metric-value">0.94</span></div>
+          <div class="metric-item"><span class="metric-name">Uncertainty Confusion Metric (UCM)</span> <span class="metric-value">0.05</span></div>
+          <div class="metric-item"><span class="metric-name">Harmonic Dice (HDice)</span> <span class="metric-value">0.89</span></div>
+        </div>
+
+        <div class="footer">
+          Generated automatically by TrustMaps National Evaluation Center.<br>
+          Verification Endpoint: https://trustmaps.gov.in/verify
+        </div>
+      </div>
+    `;
+
+    try {
+      const canvas = await html2canvas(reportContainer, {
+        scale: 2, // Higher scale for better resolution
+        useCORS: true,
+        logging: false
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+      pdf.save('TrustMaps_Detailed_Report.pdf');
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      alert('Failed to generate report. Please try again.');
+    } finally {
+      document.body.removeChild(reportContainer);
     }
   };
 
@@ -522,8 +632,20 @@ const CertificationWorkflow = () => {
                 <span className="text-indigo-900 font-bold text-lg">TM-IND-2024-HEALTH-001</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <button className="flex-1 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all">Download Report</button>
-                <button className="flex-1 border-2 border-slate-200 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all">Visit Leaderboard</button>
+                <button
+                  onClick={handleDownloadReport}
+                  className="flex-1 bg-slate-900 text-white px-6 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center justify-center space-x-2"
+                >
+                  <Download size={18} />
+                  <span>Download Report</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('leaderboard')}
+                  className="flex-1 border-2 border-slate-200 px-6 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all flex items-center justify-center space-x-2"
+                >
+                  <Trophy size={18} />
+                  <span>Visit Leaderboard</span>
+                </button>
               </div>
             </div>
           )}
@@ -587,7 +709,7 @@ const CertificationWorkflow = () => {
           <p className="text-sm text-slate-600 leading-relaxed">
             All AI systems evaluated by TrustMaps are checked for compliance with Section 6 regarding notice and consent, and Section 12 regarding the correction and erasure of personal data.
           </p>
-          <a href="#" className="inline-flex items-center text-indigo-600 text-sm font-bold hover:underline">
+          <a href="https://www.meity.gov.in/static/uploads/2024/06/2bf1f0e9f04e6fb4f8fef35e82c42aa5.pdf" className="inline-flex items-center text-indigo-600 text-sm font-bold hover:underline">
             Read Guidance <ChevronRight size={14} className="ml-1" />
           </a>
         </div>
